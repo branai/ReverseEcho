@@ -13,9 +13,16 @@
 ReverseEchoAudioProcessorEditor::ReverseEchoAudioProcessorEditor (ReverseEchoAudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p)
 {
-    // Make sure that before the constructor has finished, you've set the
-    // editor's size to whatever you need it to be.
-    setSize (400, 300);
+    setSize(500, 500);
+    startTimer(1.0 / 44100.0);
+    
+    // Initialize delay slider
+    delaySlider.setSliderStyle(juce::Slider::SliderStyle::Rotary); // Set the slider style to vertical
+    delaySlider.setTextBoxStyle(juce::Slider::TextEntryBoxPosition::NoTextBox, true, 0, 0);
+    delaySlider.setRange(juce::Range<double>(0.01, 1.0), 0.01); // Adjust range as needed
+    delaySlider.addListener(this);
+    addAndMakeVisible(&delaySlider);
+        
 }
 
 ReverseEchoAudioProcessorEditor::~ReverseEchoAudioProcessorEditor()
@@ -25,16 +32,42 @@ ReverseEchoAudioProcessorEditor::~ReverseEchoAudioProcessorEditor()
 //==============================================================================
 void ReverseEchoAudioProcessorEditor::paint (juce::Graphics& g)
 {
-    // (Our component is opaque, so we must completely fill the background with a solid colour)
-    g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
+    g.fillAll(juce::Colours::white);
 
-    g.setColour (juce::Colours::white);
-    g.setFont (15.0f);
-    g.drawFittedText ("Hello World!", getLocalBounds(), juce::Justification::centred, 1);
+    for (int i = 0; i < audioProcessor.soundLine.size(); ++i)
+    {
+        
+        float xMain = i + 125.0;
+        float yMain = mapToCoordMain(audioProcessor.soundLine[i]);
+        float yDelay = mapToCoordDelay(audioProcessor.delayLine[i]);
+        
+        g.drawLine(xMain, 100, xMain, yMain);
+        g.drawLine(xMain, 300, xMain, yDelay);
+        
+    }
+    
+
+}
+
+
+
+float ReverseEchoAudioProcessorEditor::mapToCoordMain(float x) {
+    return (x * 100) + 100;
+}
+
+float ReverseEchoAudioProcessorEditor::mapToCoordDelay(float x) {
+    return (x * 100) + 300;
 }
 
 void ReverseEchoAudioProcessorEditor::resized()
 {
-    // This is generally where you'll want to lay out the positions of any
-    // subcomponents in your editor..
+    delaySlider.setBounds(200,412 ,100,75); // Adjust position and size as needed
+}
+
+void ReverseEchoAudioProcessorEditor::sliderValueChanged (juce::Slider* slider)
+{
+    if (slider == &delaySlider)
+    {
+        audioProcessor.setDelayTime(slider->getValue());
+    }
 }

@@ -9,10 +9,18 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include <vector>
 
 //==============================================================================
 /**
 */
+
+struct PointData {
+    juce::Point<float> point;
+    std::pair<float, float> vel;
+};
+
+
 class ReverseEchoAudioProcessor  : public juce::AudioProcessor
 {
 public:
@@ -29,6 +37,7 @@ public:
    #endif
 
     void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
+    double softClip(float inputValue, float softClipFactor);
 
     //==============================================================================
     juce::AudioProcessorEditor* createEditor() override;
@@ -53,7 +62,26 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
+    //std::deque<juce::Point<float>> movingPoints;
+    std::vector<float> soundLine;//250);
+    std::vector<float> delayLine;//250);
+    std::vector<float> delayDataLeft;//250);
+    std::vector<float> delayDataRight;//250);
+    
+    int delayIndex = 0;
+    
+    
+    
+    
+    void setDelayTime(double delayTime);
+    
+    
+
 private:
+    
+    long currentDelayLength = 441;
+    double globalSamplingRate = 44100.0;
+    //std::mutex delayTimeMutex;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ReverseEchoAudioProcessor)
 };
